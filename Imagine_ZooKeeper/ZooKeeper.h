@@ -1,5 +1,5 @@
-#ifndef IMAGINE_ZOOKEEPER_H
-#define IMAGINE_ZOOKEEPER_H
+#ifndef IMAGINE_ZOOKEEPER_ZOOKEEPER_H
+#define IMAGINE_ZOOKEEPER_ZOOKEEPER_H
 
 #include<Imagine_Muduo/Imagine_Muduo/EventLoop.h>
 #include<unordered_map>

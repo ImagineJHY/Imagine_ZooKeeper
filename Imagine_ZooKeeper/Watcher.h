@@ -1,5 +1,5 @@
-#ifndef IMAGINE_WATCHER_H
-#define IMAGINE_WATCHER_H
+#ifndef IMAGINE_ZOOKEEPER_WATCHER_H
+#define IMAGINE_ZOOKEEPER_WATCHER_H
 
 #include<string>
 
