@@ -1,5 +1,5 @@
-#ifndef IMAGINE_RPCZOOKEEPER_H
-#define IMAGINE_RPCZOOKEEPER_H
+#ifndef IMAGINE_RPC_RPCZOOKEEPER_H
+#define IMAGINE_RPC_RPCZOOKEEPER_H
 
 #include<Imagine_ZooKeeper/Imagine_ZooKeeper/ZooKeeper.h>
 #include<Imagine_Muduo/Imagine_Muduo/EventLoop.h>
@@ -61,7 +61,7 @@ public:
     };
 
 public:
-    RpcZooKeeper(const std::string& ip_, const std::string& port, EventCallback read_callback_, EventCallback write_callback_, EventCommunicateCallback communicate_callback_, double time_out_=120.0, int max_request_num=10000);
+    RpcZooKeeper(const std::string& ip_, const std::string& port_, EventCallback read_callback_, EventCallback write_callback_, EventCommunicateCallback communicate_callback_, double time_out_=120.0, int max_request_num=10000);
 
     RpcZooKeeper(const std::string& ip_, const std::string& port_, double time_out_=120.0, int max_request_num=10000);
 

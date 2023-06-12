@@ -1,5 +1,5 @@
-#ifndef IMAGINE_RPCSERVER_H
-#define IMAGINE_RPCSERVER_H
+#ifndef IMAGINE_RPC_RPCSERVER_H
+#define IMAGINE_RPC_RPCSERVER_H
 
 #include<unistd.h>
 #include<string>
@@ -58,7 +58,7 @@ public:
 
     bool SetKeeper(const std::string& keeper_ip_, const std::string& keeper_port_);
     
-    //在本地HashMap注册函数(加锁)
+    //注册函数(加锁),若没有zookeeper则只在本地注册
     void Callee(const std::string& method, RpcCallback callback);
 
     void loop();

@@ -1,5 +1,5 @@
-#ifndef IMAGINE_RPCCLIENT_H
-#define IMAGINE_RPCCLIENT_H
+#ifndef IMAGINE_RPC_RPCCLIENT_H
+#define IMAGINE_RPC_RPCCLIENT_H
 
 #include<string>
 #include<functional>

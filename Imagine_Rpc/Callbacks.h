@@ -1,5 +1,5 @@
-#ifndef IMAGINE_CALLBACKS_H
-#define IMAGINE_CALLBACKS_H
+#ifndef IMAGINE_RPC_CALLBACKS_H
+#define IMAGINE_RPC_CALLBACKS_H
 
 #include<functional>
 #include<vector>
