@@ -113,25 +113,25 @@ bool ZooKeeper::DeleteClusterInMap(const std::string &cluster_name)
     return true;
 }
 
-bool ZooKeeper::InsertZnode(const std::string &cluster_name, const std::string &stat, const ClusterType cluster_type, const std::string &watcher_stat, const std::string &data)
+bool ZooKeeper::InsertZnode(const std::string &name, const std::string &stat, const ClusterType type, const std::string &watcher_stat, const std::string &data)
 {
     pthread_mutex_lock(&map_lock_);
-    if (unique_map_.find(cluster_name + stat) == unique_map_.end()) {
-        unique_map_.insert(std::make_pair(cluster_name + stat, 1));
+    if (unique_map_.find(name + stat) == unique_map_.end()) {
+        unique_map_.insert(std::make_pair(name + stat, 1));
     } else {
         printf("register repeat!\n"); // 拒绝重复的注册活动
         pthread_mutex_unlock(&map_lock_);
         return false;
     }
-    std::unordered_map<std::string, ClusterType>::iterator type_it = type_map_.find(cluster_name);
-    std::unordered_map<std::string, Znode *>::iterator node_it = node_map_.find(cluster_name);
-    std::unordered_map<std::string, pthread_mutex_t *>::iterator lock_it = lock_map_.find(cluster_name);
+    std::unordered_map<std::string, ClusterType>::iterator type_it = type_map_.find(name);
+    std::unordered_map<std::string, Znode *>::iterator node_it = node_map_.find(name);
+    std::unordered_map<std::string, pthread_mutex_t *>::iterator lock_it = lock_map_.find(name);
     if (type_it == type_map_.end() && node_it == node_map_.end() && lock_it == lock_map_.end()) {
         // 未创建相应集群,自动创建
         //  pthread_mutex_unlock(&map_lock);
-        Znode *new_cluster = CreateZnode(cluster_name, cluster_type, stat, data);
+        Znode *new_cluster = CreateZnode(name, type, stat, data);
         new_cluster->SetWatcherStat(watcher_stat);
-        CreateClusterInMap(cluster_name, new_cluster, cluster_type);
+        CreateClusterInMap(name, new_cluster, type);
         pthread_mutex_unlock(&map_lock_);
 
         return new_cluster;
