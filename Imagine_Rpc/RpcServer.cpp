@@ -8,7 +8,7 @@ using namespace Imagine_Rpc;
 RpcServer::RpcServer(const std::string &ip, const std::string &port, const std::string &keeper_ip, const std::string &keeper_port, int max_client_num)
                      : ip_(ip), port_(port), keeper_ip_(keeper_ip), keeper_port_(keeper_port)
 {
-    int temp_port = Rpc::StringToInt(port);
+    int temp_port = Rpc::StringToInt(port_);
     if (temp_port < 0) {
         throw std::exception();
     }
@@ -65,8 +65,8 @@ RpcServer::RpcServer(const std::string &ip, const std::string &port, std::unorde
     pthread_mutex_lock(&callback_lock_);
     for (auto it = callbacks.begin(); it != callbacks.end(); it++) {
         // Callee(it->first,it->second);
-        callbacks.insert(std::make_pair(it->first, it->second));
-        // callbacks.insert({it->first,it->second});
+        callbacks_.insert(std::make_pair(it->first, it->second));
+        // callbacks_.insert({it->first,it->second});
         if (keeper_ip_.size() && keeper_port_.size())
             Register(it->first, keeper_ip_, keeper_port_);
     }
