@@ -1,7 +1,7 @@
 #ifndef IMAGINE_RPC_RPCWATCHER_H
 #define IMAGINE_RPC_RPCWATCHER_H
 
-#include <Imagine_ZooKeeper/Imagine_ZooKeeper/Watcher.h>
+#include <Watcher.h>
 
 #include <string>
 

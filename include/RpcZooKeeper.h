@@ -1,9 +1,9 @@
 #ifndef IMAGINE_RPC_RPCZOOKEEPER_H
 #define IMAGINE_RPC_RPCZOOKEEPER_H
 
-#include <Imagine_ZooKeeper/Imagine_ZooKeeper/ZooKeeper.h>
-#include <Imagine_Muduo/Imagine_Muduo/EventLoop.h>
-// #include <Imagine_Muduo/TimeUtil.h>
+#include <ZooKeeper.h>
+#include <EventLoop.h>
+// #include <TimeUtil.h>
 #include <unordered_map>
 #include <string>
 #include <list>
