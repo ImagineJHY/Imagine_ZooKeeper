@@ -11,7 +11,7 @@ system_dir_path = os.path.join(thirdparty_dir_path, 'Imagine_System')
 # 判断Imagine System目录是否存在
 if os.path.isdir(system_dir_path):
     # Imagine System存在直接退出
-    print("exist!")
+    print("Imagine System exist!")
 else:
     #Imagine System不存在创建
     submodule_command = ["git", "submodule", "add", "-f", "https://github.com/ImagineJHY/Imagine_System.git"]
