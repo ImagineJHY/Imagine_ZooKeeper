@@ -182,10 +182,10 @@ CMAKE_STRIP:FILEPATH=/usr/bin/strip
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
 //Value Computed by CMake
-IMAGINE_MUDUO_BINARY_DIR:STATIC=/home/imagine/MIT6824/Imagine_ZooKeeper/build
+IMAGINE_MUDUO_BINARY_DIR:STATIC=/home/imagine/MIT6824/Imagine_ZooKeeper/build/thirdparty/Imagine_System/worker/Imagine_Muduo
 
 //Value Computed by CMake
-IMAGINE_MUDUO_SOURCE_DIR:STATIC=/home/imagine/MIT6824/Imagine_ZooKeeper
+IMAGINE_MUDUO_SOURCE_DIR:STATIC=/home/imagine/MIT6824/Imagine_ZooKeeper/thirdparty/Imagine_System/worker/Imagine_Muduo
 
 //Value Computed by CMake
 IMAGINE_SYSTEM_BINARY_DIR:STATIC=/home/imagine/MIT6824/Imagine_ZooKeeper/build/thirdparty/Imagine_System
@@ -203,7 +203,7 @@ IMAGINE_ZOOKEEPER_SOURCE_DIR:STATIC=/home/imagine/MIT6824/Imagine_ZooKeeper
 imagine_muduo_LIB_DEPENDS:STATIC=general;pthread;
 
 //Dependencies for the target
-imagine_zookeeper_LIB_DEPENDS:STATIC=general;pthread;
+imagine_zookeeper_LIB_DEPENDS:STATIC=general;pthread;general;imagine_muduo;
 
 
 ########################
@@ -304,7 +304,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=2
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=3
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
