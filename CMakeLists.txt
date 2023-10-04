@@ -57,3 +57,7 @@ file(GLOB IMAGINE_ZOOKEEPER_SRC_LIST ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 add_library(imagine_zookeeper SHARED ${IMAGINE_ZOOKEEPER_SRC_LIST})
 target_include_directories(imagine_zookeeper PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(imagine_zookeeper pthread)
+
+if(TARGET imagine_muduo)
+    target_link_libraries(imagine_zookeeper imagine_muduo)
+endif()
