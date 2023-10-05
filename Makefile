@@ -1,6 +1,7 @@
 .PHONY: build
-all:
-	cd build && make
+
+all: clean init prepare build
+
 init:
 	cd build && make init
 prepare:
