@@ -3,10 +3,26 @@
 namespace Imagine_ZooKeeper
 {
 
-ZooKeeper::ZooKeeper(int port, int max_request_num, Imagine_Muduo::EventCallback read_callback, Imagine_Muduo::EventCallback write_callback, Imagine_Muduo::EventCommunicateCallback communicate_callback)
+ZooKeeper::ZooKeeper()
+{    
+    if (pthread_mutex_init(&map_lock_, nullptr) != 0) {
+        throw std::exception();
+    }
+}
+
+ZooKeeper::ZooKeeper(std::string profile_name)
+{
+    Init(profile_name);
+
+    if (pthread_mutex_init(&map_lock_, nullptr) != 0) {
+        throw std::exception();
+    }
+}
+
+ZooKeeper::ZooKeeper(std::string port, int max_request_num, Imagine_Muduo::EventCallback read_callback, Imagine_Muduo::EventCallback write_callback, Imagine_Muduo::EventCommunicateCallback communicate_callback)
     : read_callback_(read_callback), write_callback_(write_callback), communicate_callback_(communicate_callback)
 {
-    if (port < 0) {
+    if (atoi(port.c_str()) < 0) {
         throw std::exception();
     }
 
@@ -24,6 +40,55 @@ ZooKeeper::~ZooKeeper()
     if (loop_) {
         delete loop_;
     }
+}
+
+void ZooKeeper::Init(std::string profile_name)
+{
+    if (profile_name == "") {
+        throw std::exception();
+    }
+
+    YAML::Node config = YAML::LoadFile(profile_name);
+    ip_ = config["ip"].as<std::string>();
+    port_ = config["port"].as<size_t>();
+    thread_num_ = config["thread_num"].as<size_t>();
+    max_channel_num_ = config["max_channel_num"].as<size_t>();
+    log_name_ = config["log_name"].as<std::string>();
+    log_path_ = config["log_path"].as<std::string>();
+    max_log_file_size_ = config["max_log_file_size"].as<size_t>();
+    async_log_ = config["async_log"].as<bool>();
+    singleton_log_mode_ = config["singleton_log_mode"].as<bool>();
+    log_title_ = config["log_title"].as<std::string>();
+    log_with_timestamp_ = config["log_with_timestamp"].as<bool>();
+
+    if (singleton_log_mode_) {
+        logger_ = Imagine_Tool::SingletonLogger::GetInstance();
+    } else {
+        logger_ = new Imagine_Tool::NonSingletonLogger();
+        Imagine_Tool::Logger::SetInstance(logger_);
+    }
+
+    InitProfilePath(profile_name);
+
+    GenerateSubmoduleProfile(config);
+
+    logger_->Init(config);
+}
+
+void ZooKeeper::InitProfilePath(std::string profile_name)
+{
+    size_t idx = profile_name.find_last_of("/");
+    profile_path_ = profile_name.substr(0, idx + 1);
+    muduo_profile_name_ = profile_path_ + "generate_Log_profile.yaml";
+}
+
+void ZooKeeper::GenerateSubmoduleProfile(YAML::Node config)
+{
+    int fd = open(muduo_profile_name_.c_str(), O_RDWR | O_CREAT);
+    config.remove(config["ip"]);
+    config["log_name"] = "imagine_muduo_log.log";
+    write(fd, config.as<std::string>().c_str(), config.as<std::string>().size());
+    close(fd);
 }
 
 void ZooKeeper::loop()

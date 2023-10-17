@@ -144,9 +144,19 @@ class ZooKeeper
     };
 
  public:
-    ZooKeeper(int port, int max_request_num = 10000, Imagine_Muduo::EventCallback read_callback = nullptr, Imagine_Muduo::EventCallback write_callback = nullptr, Imagine_Muduo::EventCommunicateCallback communicate_callback = nullptr);
+    ZooKeeper();
+
+    ZooKeeper(std::string profile_name);
+
+    ZooKeeper(std::string port, int max_request_num = 10000, Imagine_Muduo::EventCallback read_callback = nullptr, Imagine_Muduo::EventCallback write_callback = nullptr, Imagine_Muduo::EventCommunicateCallback communicate_callback = nullptr);
 
     virtual ~ZooKeeper();
+
+    void Init(std::string profile_name);
+
+    void InitProfilePath(std::string profile_name);
+
+    void GenerateSubmoduleProfile(YAML::Node config);
 
     void loop();
 
@@ -215,13 +225,29 @@ class ZooKeeper
     // 更新集群master节点,返回更新结果
     Znode *UpdateClusterZnode(Znode *cluster_node, ClusterType cluster_type);
 
+ private:
+    std::string ip_;
+    std::string port_;
+    size_t thread_num_;
+    size_t max_channel_num_;
+    std::string log_name_;
+    std::string log_path_;
+    size_t max_log_file_size_;
+    bool async_log_;
+    bool singleton_log_mode_;
+    std::string log_title_;
+    bool log_with_timestamp_;
+    Imagine_Tool::Logger* logger_;
+
+    std::string profile_path_;
+    std::string muduo_profile_name_;
+
  protected:
     Imagine_Muduo::EventLoop *loop_ = nullptr;
     Imagine_Muduo::EventCallback read_callback_;
     Imagine_Muduo::EventCallback write_callback_;
     Imagine_Muduo::EventCommunicateCallback communicate_callback_;                 // 向muduo提供粘包判断函数
 
-    int port_;
     int max_cluster_num_;                                           // 能够接收的最大集群数，暂不限定单个集群内的节点数目
 
  private:
