@@ -148,7 +148,7 @@ class ZooKeeper
 
     ZooKeeper(std::string profile_name);
 
-    ZooKeeper(std::string port, int max_request_num = 10000, Imagine_Muduo::EventCallback read_callback = nullptr, Imagine_Muduo::EventCallback write_callback = nullptr, Imagine_Muduo::EventCommunicateCallback communicate_callback = nullptr);
+    ZooKeeper(int port, int max_request_num = 10000, Imagine_Muduo::EventCallback read_callback = nullptr, Imagine_Muduo::EventCallback write_callback = nullptr, Imagine_Muduo::EventCommunicateCallback communicate_callback = nullptr);
 
     virtual ~ZooKeeper();
 

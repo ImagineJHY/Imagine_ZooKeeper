@@ -19,10 +19,10 @@ ZooKeeper::ZooKeeper(std::string profile_name)
     }
 }
 
-ZooKeeper::ZooKeeper(std::string port, int max_request_num, Imagine_Muduo::EventCallback read_callback, Imagine_Muduo::EventCallback write_callback, Imagine_Muduo::EventCommunicateCallback communicate_callback)
+ZooKeeper::ZooKeeper(int port, int max_request_num, Imagine_Muduo::EventCallback read_callback, Imagine_Muduo::EventCallback write_callback, Imagine_Muduo::EventCommunicateCallback communicate_callback)
     : read_callback_(read_callback), write_callback_(write_callback), communicate_callback_(communicate_callback)
 {
-    if (atoi(port.c_str()) < 0) {
+    if (port < 0) {
         throw std::exception();
     }
 
