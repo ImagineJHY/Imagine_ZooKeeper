@@ -225,7 +225,7 @@ class ZooKeeper
     // 更新集群master节点,返回更新结果
     Znode *UpdateClusterZnode(Znode *cluster_node, ClusterType cluster_type);
 
- private:
+ protected:
     std::string ip_;
     std::string port_;
     size_t thread_num_;
