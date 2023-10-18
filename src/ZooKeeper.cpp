@@ -50,7 +50,7 @@ void ZooKeeper::Init(std::string profile_name)
 
     YAML::Node config = YAML::LoadFile(profile_name);
     ip_ = config["ip"].as<std::string>();
-    port_ = config["port"].as<size_t>();
+    port_ = config["port"].as<std:::string>();
     thread_num_ = config["thread_num"].as<size_t>();
     max_channel_num_ = config["max_channel_num"].as<size_t>();
     log_name_ = config["log_name"].as<std::string>();
