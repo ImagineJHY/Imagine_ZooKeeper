@@ -158,6 +158,8 @@ class ZooKeeper
 
     void Init(YAML::Node config);
 
+    void InitLoop(YAML::Node config);
+
     void InitProfilePath(std::string profile_name);
 
     void GenerateSubmoduleProfile(YAML::Node config);

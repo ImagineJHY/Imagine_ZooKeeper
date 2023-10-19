@@ -89,6 +89,13 @@ void ZooKeeper::Init(YAML::Node config)
     }
 
     logger_->Init(config);
+
+    InitLoop(config);
+}
+
+void ZooKeeper::InitLoop(YAML::Node config)
+{
+    loop_ = new Imagine_Muduo::EventLoop(config);
 }
 
 void ZooKeeper::InitProfilePath(std::string profile_name)
