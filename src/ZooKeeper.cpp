@@ -70,11 +70,11 @@ void ZooKeeper::Init(std::string profile_name)
         Imagine_Tool::Logger::SetInstance(logger_);
     }
 
+    logger_->Init(config);
+
     InitProfilePath(profile_name);
 
     GenerateSubmoduleProfile(config);
-
-    logger_->Init(config);
 }
 
 void ZooKeeper::InitProfilePath(std::string profile_name)
