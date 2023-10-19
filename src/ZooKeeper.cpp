@@ -21,6 +21,15 @@ ZooKeeper::ZooKeeper(std::string profile_name)
     }
 }
 
+ZooKeeper::ZooKeeper(YAML::Node config)
+{
+    Init(config);
+
+    if (pthread_mutex_init(&map_lock_, nullptr) != 0) {
+        throw std::exception();
+    }
+}
+
 ZooKeeper::ZooKeeper(int port, int max_request_num, Imagine_Muduo::EventCallback read_callback, Imagine_Muduo::EventCallback write_callback, Imagine_Muduo::EventCommunicateCallback communicate_callback)
     : read_callback_(read_callback), write_callback_(write_callback), communicate_callback_(communicate_callback)
 {
@@ -51,6 +60,15 @@ void ZooKeeper::Init(std::string profile_name)
     }
 
     YAML::Node config = YAML::LoadFile(profile_name);
+    Init(config);
+
+    InitProfilePath(profile_name);
+
+    GenerateSubmoduleProfile(config);
+}
+
+void ZooKeeper::Init(YAML::Node config)
+{
     ip_ = config["ip"].as<std::string>();
     port_ = config["port"].as<std::string>();
     thread_num_ = config["thread_num"].as<size_t>();
@@ -71,10 +89,6 @@ void ZooKeeper::Init(std::string profile_name)
     }
 
     logger_->Init(config);
-
-    InitProfilePath(profile_name);
-
-    GenerateSubmoduleProfile(config);
 }
 
 void ZooKeeper::InitProfilePath(std::string profile_name)
