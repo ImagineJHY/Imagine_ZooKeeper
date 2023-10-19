@@ -1,5 +1,7 @@
 #include "Imagine_ZooKeeper/ZooKeeper.h"
 
+#include <fstream>
+
 namespace Imagine_ZooKeeper
 {
 
@@ -50,7 +52,7 @@ void ZooKeeper::Init(std::string profile_name)
 
     YAML::Node config = YAML::LoadFile(profile_name);
     ip_ = config["ip"].as<std::string>();
-    port_ = config["port"].as<std:::string>();
+    port_ = config["port"].as<std::string>();
     thread_num_ = config["thread_num"].as<size_t>();
     max_channel_num_ = config["max_channel_num"].as<size_t>();
     log_name_ = config["log_name"].as<std::string>();
@@ -84,11 +86,11 @@ void ZooKeeper::InitProfilePath(std::string profile_name)
 
 void ZooKeeper::GenerateSubmoduleProfile(YAML::Node config)
 {
-    int fd = open(muduo_profile_name_.c_str(), O_RDWR | O_CREAT);
+    std::ofstream fout(muduo_profile_name_.c_str());
     config.remove(config["ip"]);
     config["log_name"] = "imagine_muduo_log.log";
-    write(fd, config.as<std::string>().c_str(), config.as<std::string>().size());
-    close(fd);
+    fout << config;
+    fout.close();
 }
 
 void ZooKeeper::loop()
