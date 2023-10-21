@@ -1,10 +1,13 @@
 # Imagine_ZooKeeper
+
 Imagine_ZooKeeper is a server registration center provading load balance and watcher function.
 
 ## Any Problems
+
 If you find a bug, post an [issue](https://github.com/ImagineJHY/Imagine_ZooKeeper/issues)! If you have questions about how to use Imagine_ZooKeeper, feel free to shoot me an email at imaginejhy@163.com
 
 ## How to Build
+
 Imagine_ZooKeeper uses [CMake](http://www.cmake.org) to support building. Install CMake before proceeding.
 
 #### 1. Navigating into the source directory
