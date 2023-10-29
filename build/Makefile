@@ -604,32 +604,32 @@ imagine_muduo/fast:
 	$(MAKE) -f thirdparty/Imagine_System/worker/Imagine_Muduo/CMakeFiles/imagine_muduo.dir/build.make thirdparty/Imagine_System/worker/Imagine_Muduo/CMakeFiles/imagine_muduo.dir/build
 .PHONY : imagine_muduo/fast
 
-src/ZooKeeper.o: src/ZooKeeper.cpp.o
+src/ZooKeeperServer.o: src/ZooKeeperServer.cpp.o
 
-.PHONY : src/ZooKeeper.o
+.PHONY : src/ZooKeeperServer.o
 
 # target to build an object file
-src/ZooKeeper.cpp.o:
-	$(MAKE) -f CMakeFiles/imagine_zookeeper.dir/build.make CMakeFiles/imagine_zookeeper.dir/src/ZooKeeper.cpp.o
-.PHONY : src/ZooKeeper.cpp.o
+src/ZooKeeperServer.cpp.o:
+	$(MAKE) -f CMakeFiles/imagine_zookeeper.dir/build.make CMakeFiles/imagine_zookeeper.dir/src/ZooKeeperServer.cpp.o
+.PHONY : src/ZooKeeperServer.cpp.o
 
-src/ZooKeeper.i: src/ZooKeeper.cpp.i
+src/ZooKeeperServer.i: src/ZooKeeperServer.cpp.i
 
-.PHONY : src/ZooKeeper.i
+.PHONY : src/ZooKeeperServer.i
 
 # target to preprocess a source file
-src/ZooKeeper.cpp.i:
-	$(MAKE) -f CMakeFiles/imagine_zookeeper.dir/build.make CMakeFiles/imagine_zookeeper.dir/src/ZooKeeper.cpp.i
-.PHONY : src/ZooKeeper.cpp.i
+src/ZooKeeperServer.cpp.i:
+	$(MAKE) -f CMakeFiles/imagine_zookeeper.dir/build.make CMakeFiles/imagine_zookeeper.dir/src/ZooKeeperServer.cpp.i
+.PHONY : src/ZooKeeperServer.cpp.i
 
-src/ZooKeeper.s: src/ZooKeeper.cpp.s
+src/ZooKeeperServer.s: src/ZooKeeperServer.cpp.s
 
-.PHONY : src/ZooKeeper.s
+.PHONY : src/ZooKeeperServer.s
 
 # target to generate assembly for a file
-src/ZooKeeper.cpp.s:
-	$(MAKE) -f CMakeFiles/imagine_zookeeper.dir/build.make CMakeFiles/imagine_zookeeper.dir/src/ZooKeeper.cpp.s
-.PHONY : src/ZooKeeper.cpp.s
+src/ZooKeeperServer.cpp.s:
+	$(MAKE) -f CMakeFiles/imagine_zookeeper.dir/build.make CMakeFiles/imagine_zookeeper.dir/src/ZooKeeperServer.cpp.s
+.PHONY : src/ZooKeeperServer.cpp.s
 
 # Help Target
 help:
@@ -677,9 +677,9 @@ help:
 	@echo "... imagine_time"
 	@echo "... imagine_log"
 	@echo "... imagine_muduo"
-	@echo "... src/ZooKeeper.o"
-	@echo "... src/ZooKeeper.i"
-	@echo "... src/ZooKeeper.s"
+	@echo "... src/ZooKeeperServer.o"
+	@echo "... src/ZooKeeperServer.i"
+	@echo "... src/ZooKeeperServer.s"
 .PHONY : help
 
 
