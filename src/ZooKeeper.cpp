@@ -132,19 +132,19 @@ void ZooKeeper::LoadBalance()
 void ZooKeeper::SetReadCallback(Imagine_Muduo::EventCallback read_callback)
 {
     read_callback_ = read_callback;
-    loop_->SetReadCallback(read_callback_);
+    // loop_->SetReadCallback(read_callback_);
 }
 
 void ZooKeeper::SetWriteCallback(Imagine_Muduo::EventCallback write_callback)
 {
     write_callback_ = write_callback;
-    loop_->SetWriteCallback(write_callback_);
+    // loop_->SetWriteCallback(write_callback_);
 }
 
 void ZooKeeper::SetCommunicateCallback(Imagine_Muduo::EventCommunicateCallback communicate_callback)
 {
     communicate_callback_ = communicate_callback;
-    loop_->SetWriteCallback(write_callback_);
+    // loop_->SetWriteCallback(write_callback_);
 }
 
 ZooKeeper::Znode *ZooKeeper::CreateZnode(const std::string &cluster_name, ClusterType cluster_type, const std::string &stat, const std::string &data)
