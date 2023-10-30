@@ -151,6 +151,10 @@ class ZooKeeperServer : public Imagine_Muduo::TcpServer
 
     ZooKeeperServer(YAML::Node config);
 
+    ZooKeeperServer(std::string profile_name, Imagine_Muduo::Connection* msg_conn);
+
+    ZooKeeperServer(YAML::Node config, Imagine_Muduo::Connection* msg_conn);
+
     virtual ~ZooKeeperServer();
 
     void Init(std::string profile_name);

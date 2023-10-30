@@ -30,6 +30,24 @@ ZooKeeperServer::ZooKeeperServer(YAML::Node config) : Imagine_Muduo::TcpServer(c
     }
 }
 
+ZooKeeperServer::ZooKeeperServer(std::string profile_name, Imagine_Muduo::Connection* msg_conn) : Imagine_Muduo::TcpServer(profile_name, msg_conn)
+{
+    Init(profile_name);
+
+    if (pthread_mutex_init(&map_lock_, nullptr) != 0) {
+        throw std::exception();
+    }
+}
+
+ZooKeeperServer::ZooKeeperServer(YAML::Node config, Imagine_Muduo::Connection* msg_conn) : Imagine_Muduo::TcpServer(config, msg_conn)
+{
+    Init(config);
+
+    if (pthread_mutex_init(&map_lock_, nullptr) != 0) {
+        throw std::exception();
+    }
+}
+
 ZooKeeperServer::~ZooKeeperServer()
 {
 }
