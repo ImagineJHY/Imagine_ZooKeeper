@@ -631,6 +631,33 @@ src/ZooKeeperServer.cpp.s:
 	$(MAKE) -f CMakeFiles/imagine_zookeeper.dir/build.make CMakeFiles/imagine_zookeeper.dir/src/ZooKeeperServer.cpp.s
 .PHONY : src/ZooKeeperServer.cpp.s
 
+src/ZooKeeperUtil.o: src/ZooKeeperUtil.cpp.o
+
+.PHONY : src/ZooKeeperUtil.o
+
+# target to build an object file
+src/ZooKeeperUtil.cpp.o:
+	$(MAKE) -f CMakeFiles/imagine_zookeeper.dir/build.make CMakeFiles/imagine_zookeeper.dir/src/ZooKeeperUtil.cpp.o
+.PHONY : src/ZooKeeperUtil.cpp.o
+
+src/ZooKeeperUtil.i: src/ZooKeeperUtil.cpp.i
+
+.PHONY : src/ZooKeeperUtil.i
+
+# target to preprocess a source file
+src/ZooKeeperUtil.cpp.i:
+	$(MAKE) -f CMakeFiles/imagine_zookeeper.dir/build.make CMakeFiles/imagine_zookeeper.dir/src/ZooKeeperUtil.cpp.i
+.PHONY : src/ZooKeeperUtil.cpp.i
+
+src/ZooKeeperUtil.s: src/ZooKeeperUtil.cpp.s
+
+.PHONY : src/ZooKeeperUtil.s
+
+# target to generate assembly for a file
+src/ZooKeeperUtil.cpp.s:
+	$(MAKE) -f CMakeFiles/imagine_zookeeper.dir/build.make CMakeFiles/imagine_zookeeper.dir/src/ZooKeeperUtil.cpp.s
+.PHONY : src/ZooKeeperUtil.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -680,6 +707,9 @@ help:
 	@echo "... src/ZooKeeperServer.o"
 	@echo "... src/ZooKeeperServer.i"
 	@echo "... src/ZooKeeperServer.s"
+	@echo "... src/ZooKeeperUtil.o"
+	@echo "... src/ZooKeeperUtil.i"
+	@echo "... src/ZooKeeperUtil.s"
 .PHONY : help
 
 

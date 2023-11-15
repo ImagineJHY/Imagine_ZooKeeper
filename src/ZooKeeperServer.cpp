@@ -1,5 +1,7 @@
 #include "Imagine_ZooKeeper/ZooKeeperServer.h"
 
+#include "Imagine_ZooKeeper/ZooKeeperUtil.h"
+
 #include <fstream>
 
 namespace Imagine_ZooKeeper
@@ -90,7 +92,7 @@ void ZooKeeperServer::LoadBalance()
     // type=Load_Balance;
 }
 
-ZooKeeperServer::Znode *ZooKeeperServer::CreateZnode(const std::string &cluster_name, ClusterType cluster_type, const std::string &stat, const std::string &data)
+ZooKeeperServer::Znode *ZooKeeperServer::CreateZnode(const std::string &cluster_name, ClusterType cluster_type, const std::pair<std::string, std::string> &stat, const std::string &data)
 {
 
     switch (cluster_type) 
@@ -145,25 +147,25 @@ bool ZooKeeperServer::DeleteClusterInMap(const std::string &cluster_name)
     return true;
 }
 
-bool ZooKeeperServer::InsertZnode(const std::string &name, const std::string &stat, const ClusterType type, const std::string &watcher_stat, const std::string &data)
+bool ZooKeeperServer::InsertZnode(const std::string &cluster_name, const std::pair<std::string, std::string> &stat, const ClusterType type, const std::string &watcher_stat, const std::string &data)
 {
     pthread_mutex_lock(&map_lock_);
-    if (unique_map_.find(name + stat) == unique_map_.end()) {
-        unique_map_.insert(std::make_pair(name + stat, 1));
+    if (unique_map_.find(ZooKeeperUtil::GenerateZNodeName(cluster_name, stat)) == unique_map_.end()) {
+        unique_map_.insert(std::make_pair(ZooKeeperUtil::GenerateZNodeName(cluster_name, stat), 1));
     } else {
         LOG_INFO("register repeat!"); // 拒绝重复的注册活动
         pthread_mutex_unlock(&map_lock_);
         return false;
     }
-    std::unordered_map<std::string, ClusterType>::iterator type_it = type_map_.find(name);
-    std::unordered_map<std::string, Znode *>::iterator node_it = node_map_.find(name);
-    std::unordered_map<std::string, pthread_mutex_t *>::iterator lock_it = lock_map_.find(name);
+    std::unordered_map<std::string, ClusterType>::iterator type_it = type_map_.find(cluster_name);
+    std::unordered_map<std::string, Znode *>::iterator node_it = node_map_.find(cluster_name);
+    std::unordered_map<std::string, pthread_mutex_t *>::iterator lock_it = lock_map_.find(cluster_name);
     if (type_it == type_map_.end() && node_it == node_map_.end() && lock_it == lock_map_.end()) {
         // 未创建相应集群,自动创建
         //  pthread_mutex_unlock(&map_lock);
-        Znode *new_cluster = CreateZnode(name, type, stat, data);
+        Znode *new_cluster = CreateZnode(cluster_name, type, stat, data);
         new_cluster->SetWatcherStat(watcher_stat);
-        CreateClusterInMap(name, new_cluster, type);
+        CreateClusterInMap(cluster_name, new_cluster, type);
         pthread_mutex_unlock(&map_lock_);
 
         return new_cluster;
@@ -199,16 +201,16 @@ bool ZooKeeperServer::InsertZnode(const std::string &name, const std::string &st
     return flag;
 }
 
-bool ZooKeeperServer::DeleteZnode(const std::string &cluster_name, const std::string &stat, const std::string &watcher_stat)
+bool ZooKeeperServer::DeleteZnode(const std::string &cluster_name, const std::pair<std::string, std::string> &stat, const std::string &watcher_stat)
 {
     // printf("Delete Node Stat is %s\n",&stat_[0]);
     pthread_mutex_lock(&map_lock_);
-    if (unique_map_.find(cluster_name + stat) == unique_map_.end()) {
+    if (unique_map_.find(ZooKeeperUtil::GenerateZNodeName(cluster_name, stat)) == unique_map_.end()) {
         LOG_INFO("delete unregister exception!");
         pthread_mutex_unlock(&map_lock_);
         throw std::exception();
     }
-    unique_map_.erase(cluster_name + stat);
+    unique_map_.erase(ZooKeeperUtil::GenerateZNodeName(cluster_name, stat));
     std::unordered_map<std::string, ClusterType>::iterator type_it = type_map_.find(cluster_name);
     std::unordered_map<std::string, Znode *>::iterator node_it = node_map_.find(cluster_name);
     std::unordered_map<std::string, pthread_mutex_t *>::iterator lock_it = lock_map_.find(cluster_name);
@@ -218,7 +220,7 @@ bool ZooKeeperServer::DeleteZnode(const std::string &cluster_name, const std::st
         throw std::exception(); // 没有该集群
     }
 
-    LOG_INFO("Cluster Node Stat is %s", &node_it->second->GetStat()[0]);
+    LOG_INFO("Cluster Node Stat is %s:%s", node_it->second->GetStat().first.c_str(), node_it->second->GetStat().second.c_str());
 
     // 若要删除节点为当前集群主节点,则应更新主节点
     bool is_lock_cluster = false; // 标识是否由于主节点更新而上锁
@@ -260,9 +262,7 @@ bool ZooKeeperServer::DeleteZnode(const std::string &cluster_name, const std::st
             break;
 
         case Load_Balance:
-            LOG_INFO("1111111");
             delete_node = LoadBalanceDelete(cluster_node, stat);
-            LOG_INFO("1111112");
             break;
 
         case High_Performance:
@@ -296,12 +296,12 @@ bool ZooKeeperServer::DeleteZnode(const std::string &cluster_name, const std::st
 //     return node_it->second;
 // }
 
-bool ZooKeeperServer::HighAvailabilityInsert(Znode *cluster_node, const std::string &stat, const std::string &watcher_stat, const std::string &data)
+bool ZooKeeperServer::HighAvailabilityInsert(Znode *cluster_node, const std::pair<std::string, std::string> &stat, const std::string &watcher_stat, const std::string &data)
 {
     return false;
 }
 
-bool ZooKeeperServer::LoadBalanceInsert(Znode *cluster_node, const std::string &stat, const std::string &watcher_stat, const std::string &data)
+bool ZooKeeperServer::LoadBalanceInsert(Znode *cluster_node, const std::pair<std::string, std::string> &stat, const std::string &watcher_stat, const std::string &data)
 {
     ZnodeLB *node = new ZnodeLB(cluster_node->GetCluster(), stat, data);
     node->SetWatcherStat(watcher_stat);
@@ -310,18 +310,18 @@ bool ZooKeeperServer::LoadBalanceInsert(Znode *cluster_node, const std::string &
     return node;
 }
 
-bool ZooKeeperServer::HighPerformanceInsert(Znode *cluster_node, const std::string &stat, const std::string &Watcher_stat, const std::string &data)
+bool ZooKeeperServer::HighPerformanceInsert(Znode *cluster_node, const std::pair<std::string, std::string> &stat, const std::string &Watcher_stat, const std::string &data)
 {
     return false;
 }
 
-ZooKeeperServer::Znode *ZooKeeperServer::HighAvailabilityDelete(Znode *cluster_node, const std::string &stat)
+ZooKeeperServer::Znode *ZooKeeperServer::HighAvailabilityDelete(Znode *cluster_node, const std::pair<std::string, std::string> &stat)
 {
 
     return nullptr;
 }
 
-ZooKeeperServer::Znode *ZooKeeperServer::LoadBalanceDelete(Znode *cluster_node, const std::string &stat)
+ZooKeeperServer::Znode *ZooKeeperServer::LoadBalanceDelete(Znode *cluster_node, const std::pair<std::string, std::string> &stat)
 {
 
     Znode *aim_node = cluster_node->Find(stat);
@@ -335,29 +335,29 @@ ZooKeeperServer::Znode *ZooKeeperServer::LoadBalanceDelete(Znode *cluster_node, 
     return aim_node;
 }
 
-ZooKeeperServer::Znode *ZooKeeperServer::HighPerformanceDelete(Znode *cluster_node, const std::string &stat)
+ZooKeeperServer::Znode *ZooKeeperServer::HighPerformanceDelete(Znode *cluster_node, const std::pair<std::string, std::string> &stat)
 {
 
     return nullptr;
 }
 
-ZooKeeperServer::Znode::Znode(const std::string &cluster_name, const std::string &stat, const std::string &data) : cluster_name_(cluster_name), stat_(stat), data_(data){};
+ZooKeeperServer::Znode::Znode(const std::string &cluster_name, const std::pair<std::string, std::string> &stat, const std::string &data) : cluster_name_(cluster_name), stat_(stat), data_(data){};
 
 ZooKeeperServer::Znode::~Znode(){};
 
-ZooKeeperServer::ZnodeHA::ZnodeHA(const std::string &cluster_name, const std::string &stat, const std::string &data) : Znode(cluster_name, stat, data)
+ZooKeeperServer::ZnodeHA::ZnodeHA(const std::string &cluster_name, const std::pair<std::string, std::string> &stat, const std::string &data) : Znode(cluster_name, stat, data)
 {
     // this->pre=this;
     // this->next=this;
 }
 
-ZooKeeperServer::ZnodeLB::ZnodeLB(const std::string &cluster_name, const std::string &stat, const std::string &data) : Znode(cluster_name, stat, data)
+ZooKeeperServer::ZnodeLB::ZnodeLB(const std::string &cluster_name, const std::pair<std::string, std::string> &stat, const std::string &data) : Znode(cluster_name, stat, data)
 {
     this->pre_ = this;
     this->next_ = this;
 }
 
-ZooKeeperServer::ZnodeHP::ZnodeHP(const std::string &cluster_name, const std::string &stat, const std::string &data) : Znode(cluster_name, stat, data)
+ZooKeeperServer::ZnodeHP::ZnodeHP(const std::string &cluster_name, const std::pair<std::string, std::string> &stat, const std::string &data) : Znode(cluster_name, stat, data)
 {
     // this->pre=this;
     // this->next=this;
@@ -389,7 +389,7 @@ std::string ZooKeeperServer::Znode::GetCluster()
     return cluster_name_;
 }
 
-std::string ZooKeeperServer::Znode::GetStat()
+std::pair<std::string, std::string> ZooKeeperServer::Znode::GetStat()
 {
     return stat_;
 }
@@ -461,9 +461,9 @@ bool ZooKeeperServer::ZnodeLB::Delete(Znode *aim_node)
 
 bool ZooKeeperServer::ZnodeHP::Delete(Znode *aim_node) { return false; }
 
-ZooKeeperServer::Znode *ZooKeeperServer::ZnodeHA::Find(const std::string &stat) { return nullptr; }
+ZooKeeperServer::Znode *ZooKeeperServer::ZnodeHA::Find(const std::pair<std::string, std::string> &stat) { return nullptr; }
 
-ZooKeeperServer::Znode *ZooKeeperServer::ZnodeLB::Find(const std::string &stat)
+ZooKeeperServer::Znode *ZooKeeperServer::ZnodeLB::Find(const std::pair<std::string, std::string> &stat)
 {
     ZnodeLB *aim_node = this;
     while (aim_node->GetStat() != stat) {
@@ -478,7 +478,7 @@ ZooKeeperServer::Znode *ZooKeeperServer::ZnodeLB::Find(const std::string &stat)
     return aim_node;
 }
 
-ZooKeeperServer::Znode *ZooKeeperServer::ZnodeHP::Find(const std::string &stat) { return nullptr; }
+ZooKeeperServer::Znode *ZooKeeperServer::ZnodeHP::Find(const std::pair<std::string, std::string> &stat) { return nullptr; }
 
 ZooKeeperServer::Znode *ZooKeeperServer::ZnodeHA::Update() { return nullptr; }
 
@@ -515,7 +515,7 @@ bool ZooKeeperServer::Znode::SetWatcherStat(const std::string &watcher_stat)
     return true;
 }
 
-std::string ZooKeeperServer::GetClusterZnodeStat(const std::string &cluster_name, bool update, std::shared_ptr<Watcher> new_watcher)
+std::pair<std::string, std::string> ZooKeeperServer::GetClusterZnodeStat(const std::string &cluster_name, bool update, std::shared_ptr<Watcher> new_watcher)
 {
     pthread_mutex_lock(&map_lock_);
     std::unordered_map<std::string, ClusterType>::iterator type_it = type_map_.find(cluster_name);
@@ -524,10 +524,10 @@ std::string ZooKeeperServer::GetClusterZnodeStat(const std::string &cluster_name
     if (type_it == type_map_.end() || node_it == node_map_.end() || lock_it == lock_map_.end()) {
         LOG_INFO("GetClusterZnodeStat exception!");
         pthread_mutex_unlock(&map_lock_);
-        return "";
+        return std::make_pair("", "");
         throw std::exception(); // 异常
     }
-    std::string stat_ = node_it->second->GetStat();
+    std::pair<std::string, std::string> stat = node_it->second->GetStat();
     if (new_watcher) {
         node_it->second->AddWatcher(new_watcher);
     }
@@ -536,7 +536,7 @@ std::string ZooKeeperServer::GetClusterZnodeStat(const std::string &cluster_name
     }
     pthread_mutex_unlock(&map_lock_);
 
-    return stat_;
+    return stat;
 }
 
 std::string ZooKeeperServer::GetClusterZnodeData(const std::string &cluster_name, bool update, std::shared_ptr<Watcher> new_wacher)
