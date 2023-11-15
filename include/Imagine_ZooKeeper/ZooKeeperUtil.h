@@ -9,7 +9,9 @@ namespace Imagine_ZooKeeper
 class ZooKeeperUtil
 {
  public:
-    static std::string GenerateZNodeName(std::string cluster_name, std::pair<std::string, std::string> stat);
+    static std::string GenerateZNodeName(const std::string& cluster_name, const std::pair<std::string, std::string>& stat);
+
+    static std::pair<std::string, std::string> GenerateZNodeStat(const std::string& ip, const std::string& port);
 };
 
 
