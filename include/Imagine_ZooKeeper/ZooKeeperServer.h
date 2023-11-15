@@ -163,11 +163,6 @@ class ZooKeeperServer : public Imagine_Muduo::TcpServer
 
     void LoadBalance(); // 暂未启用
 
-    // 设置默认的读写回调函数以及粘包判断函数
-    virtual void SetDefaultReadCallback() = 0;
-    virtual void SetDefaultWriteCallback() = 0;
-    virtual void SetDefaultCommunicateCallback() = 0;
-
     // 对外接口:节点注册
     bool InsertZnode(const std::string &cluster_name, const std::pair<std::string, std::string> &stat, const ClusterType cluster_type = Load_Balance, const std::string &watcher_stat = "", const std::string &data = "");
 
