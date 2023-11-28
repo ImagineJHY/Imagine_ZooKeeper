@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(IMAGINE_ZOOKEEPER)
 
-message("${B}[Imagine ZooKeeper]: Starting Imagine_ZooKeeper lib building, lib name is ${PROJECT_NAME}...${E}")
+message("[Imagine ZooKeeper]: Starting Imagine_ZooKeeper lib building, lib name is ${PROJECT_NAME}...")
 
 if(NOT DEFINED IMAGINE_TARGET_LIB)
 
