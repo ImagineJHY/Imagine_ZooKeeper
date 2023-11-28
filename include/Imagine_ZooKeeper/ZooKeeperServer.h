@@ -1,8 +1,9 @@
-#ifndef IMAGINE_ZOOKEEPER_ZOOKEEPER_H
-#define IMAGINE_ZOOKEEPER_ZOOKEEPER_H
+#ifndef IMAGINE_ZOOKEEPER_ZOOKEEPERSERVER_H
+#define IMAGINE_ZOOKEEPER_ZOOKEEPERSERVER_H
 
 #include "Imagine_Log/Logger.h"
 #include "Imagine_Muduo/EventLoop.h"
+#include "Imagine_Muduo/TcpServer.h"
 #include "Watcher.h"
 
 #include <unordered_map>
@@ -11,7 +12,7 @@
 namespace Imagine_ZooKeeper
 {
 
-class ZooKeeper
+class ZooKeeperServer : public Imagine_Muduo::TcpServer
 {
  public:
     enum ClusterType
@@ -25,20 +26,20 @@ class ZooKeeper
     class Znode
     {
      private:
-        std::string cluster_name_; // 用于记录所属的cluster
-        std::string stat_;         // 暂用于记录服务器名
-        std::string data_;         // 暂用于记录服务器信息
+        std::string cluster_name_;                          // 用于记录所属的cluster
+        std::pair<std::string, std::string> stat_;          // 暂用于记录服务器名
+        std::string data_;                                  // 暂用于记录服务器信息
         std::list<std::shared_ptr<Watcher>> watcher_list_;
-        std::string watcher_stat_; // 告诉watcher自己的状态
+        std::string watcher_stat_;                          // 告诉watcher自己的状态
 
      public:
-        Znode(const std::string &cluster_name, const std::string &stat, const std::string &data);
+        Znode(const std::string &cluster_name, const std::pair<std::string, std::string> &stat, const std::string &data);
 
         virtual ~Znode();
 
         std::string GetCluster();
 
-        std::string GetStat();
+        std::pair<std::string, std::string> GetStat();
 
         std::string GetData();
 
@@ -49,7 +50,7 @@ class ZooKeeper
         // 将节点从集群结构中移除(不是真的delete)
         virtual bool Delete(Znode *aim_node) = 0;
 
-        virtual Znode *Find(const std::string &stat) = 0;
+        virtual Znode *Find(const std::pair<std::string, std::string> &stat) = 0;
 
         // clusternode调用,返回集群更新后选举的master节点
         virtual Znode *Update() = 0;
@@ -62,7 +63,7 @@ class ZooKeeper
     class ZnodeHA : public Znode
     {
      public:
-        ZnodeHA(const std::string &cluster_name, const std::string &stat, const std::string &data);
+        ZnodeHA(const std::string &cluster_name, const std::pair<std::string, std::string> &stat, const std::string &data);
 
         ~ZnodeHA();
 
@@ -78,7 +79,7 @@ class ZooKeeper
 
         bool Delete(Znode *aim_node);
 
-        Znode *Find(const std::string &stat);
+        Znode *Find(const std::pair<std::string, std::string> &stat);
 
         Znode *Update();
 
@@ -90,7 +91,7 @@ class ZooKeeper
     class ZnodeLB : public Znode
     {
      public:
-        ZnodeLB(const std::string &cluster_name, const std::string &stat, const std::string &data);
+        ZnodeLB(const std::string &cluster_name, const std::pair<std::string, std::string> &stat, const std::string &data);
 
         ~ZnodeLB();
 
@@ -106,7 +107,7 @@ class ZooKeeper
 
         bool Delete(Znode *aim_node);
 
-        Znode *Find(const std::string &stat);
+        Znode *Find(const std::pair<std::string, std::string> &stat);
 
         Znode *Update();
 
@@ -118,7 +119,7 @@ class ZooKeeper
     class ZnodeHP : public Znode
     {
      public:
-        ZnodeHP(const std::string &cluster_name, const std::string &stat, const std::string &data);
+        ZnodeHP(const std::string &cluster_name, const std::pair<std::string, std::string> &stat, const std::string &data);
 
         ~ZnodeHP();
 
@@ -134,7 +135,7 @@ class ZooKeeper
 
         bool Delete(Znode *aim_node);
 
-        Znode *Find(const std::string &stat);
+        Znode *Find(const std::pair<std::string, std::string> &stat);
 
         Znode *Update();
 
@@ -144,50 +145,32 @@ class ZooKeeper
     };
 
  public:
-    ZooKeeper();
+    ZooKeeperServer();
 
-    ZooKeeper(std::string profile_name);
+    ZooKeeperServer(std::string profile_name);
 
-    ZooKeeper(YAML::Node config);
+    ZooKeeperServer(YAML::Node config);
 
-    ZooKeeper(int port, int max_request_num = 10000, Imagine_Muduo::EventCallback read_callback = nullptr, Imagine_Muduo::EventCallback write_callback = nullptr, Imagine_Muduo::EventCommunicateCallback communicate_callback = nullptr);
+    ZooKeeperServer(std::string profile_name, Imagine_Muduo::Connection* msg_conn);
 
-    virtual ~ZooKeeper();
+    ZooKeeperServer(YAML::Node config, Imagine_Muduo::Connection* msg_conn);
+
+    virtual ~ZooKeeperServer();
 
     void Init(std::string profile_name);
 
     void Init(YAML::Node config);
 
-    void InitLoop(YAML::Node config);
-
-    void InitProfilePath(std::string profile_name);
-
-    void GenerateSubmoduleProfile(YAML::Node config);
-
-    void loop();
-
-    Imagine_Muduo::EventLoop *GetLoop();
-
     void LoadBalance(); // 暂未启用
 
-    // 向muduo提供读写回调函数以及粘包判断函数
-    void SetReadCallback(Imagine_Muduo::EventCallback read_callback);
-    void SetWriteCallback(Imagine_Muduo::EventCallback write_callback);
-    void SetCommunicateCallback(Imagine_Muduo::EventCommunicateCallback communicate_callback);
-
-    // 设置默认的读写回调函数以及粘包判断函数
-    virtual void SetDefaultReadCallback() = 0;
-    virtual void SetDefaultWriteCallback() = 0;
-    virtual void SetDefaultCommunicateCallback() = 0;
-
     // 对外接口:节点注册
-    bool InsertZnode(const std::string &cluster_name, const std::string &stat, const ClusterType cluster_type = Load_Balance, const std::string &watcher_stat = "", const std::string &data = "");
+    bool InsertZnode(const std::string &cluster_name, const std::pair<std::string, std::string> &stat, const ClusterType cluster_type = Load_Balance, const std::string &watcher_stat = "", const std::string &data = "");
 
     // 对外接口:节点下线,并可以更新watcher_stat
-    bool DeleteZnode(const std::string &cluster_name, const std::string &stat, const std::string &watcher_stat = "");
+    bool DeleteZnode(const std::string &cluster_name, const std::pair<std::string, std::string> &stat, const std::string &watcher_stat = "");
 
     // 对外接口:查找集群master节点的stat,并提供更新master节点选项
-    std::string GetClusterZnodeStat(const std::string &cluster_name, bool update = false, std::shared_ptr<Watcher> new_watcher = nullptr);
+    std::pair<std::string, std::string> GetClusterZnodeStat(const std::string &cluster_name, bool update = false, std::shared_ptr<Watcher> new_watcher = nullptr);
 
     // 对外接口:查找集群master节点的data,并提供更新master节点选项
     std::string GetClusterZnodeData(const std::string &cluster_name, bool update = false, std::shared_ptr<Watcher> new_watcher = nullptr);
@@ -196,14 +179,14 @@ class ZooKeeper
     // 以下函数均不加任何锁,安全性由接口函数保证
 
     // 在集群中增加节点
-    bool HighAvailabilityInsert(Znode *cluster_node, const std::string &stat, const std::string &watcher_stat = "", const std::string &data = "");
-    bool LoadBalanceInsert(Znode *cluster_node, const std::string &stat, const std::string &watcher_stat = "", const std::string &data = "");
-    bool HighPerformanceInsert(Znode *cluster_node, const std::string &stat, const std::string &watcher_stat = "", const std::string &data = "");
+    bool HighAvailabilityInsert(Znode *cluster_node, const std::pair<std::string, std::string> &stat, const std::string &watcher_stat = "", const std::string &data = "");
+    bool LoadBalanceInsert(Znode *cluster_node, const std::pair<std::string, std::string> &stat, const std::string &watcher_stat = "", const std::string &data = "");
+    bool HighPerformanceInsert(Znode *cluster_node, const std::pair<std::string, std::string> &stat, const std::string &watcher_stat = "", const std::string &data = "");
 
     // 在集群中移除(不delete)节点并返回移除的节点,在调用函数中进行删除.在调用时会保证待删除节点不是master节点
-    Znode *HighAvailabilityDelete(Znode *cluster_node, const std::string &stat);
-    Znode *LoadBalanceDelete(Znode *cluster_node, const std::string &stat);
-    Znode *HighPerformanceDelete(Znode *cluster_node, const std::string &stat);
+    Znode *HighAvailabilityDelete(Znode *cluster_node, const std::pair<std::string, std::string> &stat);
+    Znode *LoadBalanceDelete(Znode *cluster_node, const std::pair<std::string, std::string> &stat);
+    Znode *HighPerformanceDelete(Znode *cluster_node, const std::pair<std::string, std::string> &stat);
 
     // bool HighAvailabilityFind(std::unordered_map<std::string,Znode*>::iterator it);
 
@@ -217,7 +200,7 @@ class ZooKeeper
     Znode *HighPerformanceUpdate(Znode *cluster_node);
 
     // 创造Znode节点
-    Znode *CreateZnode(const std::string &cluster_name, ClusterType cluster_type, const std::string &stat, const std::string &data = nullptr);
+    Znode *CreateZnode(const std::string &cluster_name, ClusterType cluster_type, const std::pair<std::string, std::string> &stat, const std::string &data = nullptr);
 
     // 在map中增加集群
     bool CreateClusterInMap(const std::string &cluster_name, Znode *root_node, const ClusterType cluster_type);
@@ -234,7 +217,6 @@ class ZooKeeper
  protected:
     std::string ip_;
     std::string port_;
-    size_t thread_num_;
     size_t max_channel_num_;
     std::string log_name_;
     std::string log_path_;
@@ -245,15 +227,7 @@ class ZooKeeper
     bool log_with_timestamp_;
     Imagine_Tool::Logger* logger_;
 
-    std::string profile_path_;
-    std::string muduo_profile_name_;
-
  protected:
-    Imagine_Muduo::EventLoop *loop_ = nullptr;
-    Imagine_Muduo::EventCallback read_callback_;
-    Imagine_Muduo::EventCallback write_callback_;
-    Imagine_Muduo::EventCommunicateCallback communicate_callback_;                 // 向muduo提供粘包判断函数
-
     int max_cluster_num_;                                           // 能够接收的最大集群数，暂不限定单个集群内的节点数目
 
  private:
