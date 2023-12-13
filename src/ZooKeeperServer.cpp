@@ -1,5 +1,6 @@
 #include "Imagine_ZooKeeper/ZooKeeperServer.h"
 
+#include "Imagine_ZooKeeper/log_macro.h"
 #include "Imagine_ZooKeeper/ZooKeeperUtil.h"
 
 #include <fstream>
@@ -14,7 +15,7 @@ ZooKeeperServer::ZooKeeperServer() : Imagine_Muduo::TcpServer()
     }
 }
 
-ZooKeeperServer::ZooKeeperServer(std::string profile_name) : Imagine_Muduo::TcpServer(profile_name)
+ZooKeeperServer::ZooKeeperServer(const std::string& profile_name) : Imagine_Muduo::TcpServer(profile_name)
 {
     Init(profile_name);
 
@@ -23,7 +24,7 @@ ZooKeeperServer::ZooKeeperServer(std::string profile_name) : Imagine_Muduo::TcpS
     }
 }
 
-ZooKeeperServer::ZooKeeperServer(YAML::Node config) : Imagine_Muduo::TcpServer(config)
+ZooKeeperServer::ZooKeeperServer(const YAML::Node& config) : Imagine_Muduo::TcpServer(config)
 {
     Init(config);
 
@@ -32,7 +33,7 @@ ZooKeeperServer::ZooKeeperServer(YAML::Node config) : Imagine_Muduo::TcpServer(c
     }
 }
 
-ZooKeeperServer::ZooKeeperServer(std::string profile_name, Imagine_Muduo::Connection* msg_conn) : Imagine_Muduo::TcpServer(profile_name, msg_conn)
+ZooKeeperServer::ZooKeeperServer(const std::string& profile_name, Imagine_Muduo::Connection* msg_conn) : Imagine_Muduo::TcpServer(profile_name, msg_conn)
 {
     Init(profile_name);
 
@@ -41,7 +42,7 @@ ZooKeeperServer::ZooKeeperServer(std::string profile_name, Imagine_Muduo::Connec
     }
 }
 
-ZooKeeperServer::ZooKeeperServer(YAML::Node config, Imagine_Muduo::Connection* msg_conn) : Imagine_Muduo::TcpServer(config, msg_conn)
+ZooKeeperServer::ZooKeeperServer(const YAML::Node& config, Imagine_Muduo::Connection* msg_conn) : Imagine_Muduo::TcpServer(config, msg_conn)
 {
     Init(config);
 
@@ -54,7 +55,7 @@ ZooKeeperServer::~ZooKeeperServer()
 {
 }
 
-void ZooKeeperServer::Init(std::string profile_name)
+void ZooKeeperServer::Init(const std::string& profile_name)
 {
     if (profile_name == "") {
         throw std::exception();
@@ -64,24 +65,15 @@ void ZooKeeperServer::Init(std::string profile_name)
     Init(config);
 }
 
-void ZooKeeperServer::Init(YAML::Node config)
+void ZooKeeperServer::Init(const YAML::Node& config)
 {
-    ip_ = config["ip"].as<std::string>();
-    port_ = config["port"].as<std::string>();
-    max_channel_num_ = config["max_channel_num"].as<size_t>();
-    log_name_ = config["log_name"].as<std::string>();
-    log_path_ = config["log_path"].as<std::string>();
-    max_log_file_size_ = config["max_log_file_size"].as<size_t>();
-    async_log_ = config["async_log"].as<bool>();
     singleton_log_mode_ = config["singleton_log_mode"].as<bool>();
-    log_title_ = config["log_title"].as<std::string>();
-    log_with_timestamp_ = config["log_with_timestamp"].as<bool>();
 
     if (singleton_log_mode_) {
-        logger_ = Imagine_Tool::SingletonLogger::GetInstance();
+        logger_ = SingletonLogger::GetInstance();
     } else {
-        logger_ = new Imagine_Tool::NonSingletonLogger();
-        Imagine_Tool::Logger::SetInstance(logger_);
+        logger_ = new NonSingletonLogger();
+        Logger::SetInstance(logger_);
     }
 
     logger_->Init(config);
@@ -89,10 +81,10 @@ void ZooKeeperServer::Init(YAML::Node config)
 
 void ZooKeeperServer::LoadBalance()
 {
-    // type=Load_Balance;
+    // type = Load_Balance;
 }
 
-ZooKeeperServer::Znode *ZooKeeperServer::CreateZnode(const std::string &cluster_name, ClusterType cluster_type, const std::pair<std::string, std::string> &stat, const std::string &data)
+ZooKeeperServer::Znode *ZooKeeperServer::CreateZnode(const std::string &cluster_name, ClusterType cluster_type, const std::pair<std::string, std::string> &stat, const std::string &data) const
 {
 
     switch (cluster_type) 
@@ -120,7 +112,7 @@ bool ZooKeeperServer::CreateClusterInMap(const std::string &cluster_name, Znode 
 
     pthread_mutex_t *cluster_lock = new pthread_mutex_t;
     if (pthread_mutex_init(cluster_lock, nullptr) != 0) {
-        LOG_INFO("CreateClusterInMap exception!");
+        IMAGINE_ZOOKEEPER_LOG("CreateClusterInMap exception!");
         throw std::exception();
     }
 
@@ -153,7 +145,7 @@ bool ZooKeeperServer::InsertZnode(const std::string &cluster_name, const std::pa
     if (unique_map_.find(ZooKeeperUtil::GenerateZNodeName(cluster_name, stat)) == unique_map_.end()) {
         unique_map_.insert(std::make_pair(ZooKeeperUtil::GenerateZNodeName(cluster_name, stat), 1));
     } else {
-        LOG_INFO("register repeat!"); // 拒绝重复的注册活动
+        IMAGINE_ZOOKEEPER_LOG("register repeat!"); // 拒绝重复的注册活动
         pthread_mutex_unlock(&map_lock_);
         return false;
     }
@@ -206,7 +198,7 @@ bool ZooKeeperServer::DeleteZnode(const std::string &cluster_name, const std::pa
     // printf("Delete Node Stat is %s\n",&stat_[0]);
     pthread_mutex_lock(&map_lock_);
     if (unique_map_.find(ZooKeeperUtil::GenerateZNodeName(cluster_name, stat)) == unique_map_.end()) {
-        LOG_INFO("delete unregister exception!");
+        IMAGINE_ZOOKEEPER_LOG("delete unregister exception!");
         pthread_mutex_unlock(&map_lock_);
         throw std::exception();
     }
@@ -216,11 +208,11 @@ bool ZooKeeperServer::DeleteZnode(const std::string &cluster_name, const std::pa
     std::unordered_map<std::string, pthread_mutex_t *>::iterator lock_it = lock_map_.find(cluster_name);
     if (type_it == type_map_.end() || node_it == node_map_.end()) {
         pthread_mutex_unlock(&map_lock_);
-        LOG_INFO("DeleteZnode exception!");
+        IMAGINE_ZOOKEEPER_LOG("DeleteZnode exception!");
         throw std::exception(); // 没有该集群
     }
 
-    LOG_INFO("Cluster Node Stat is %s:%s", node_it->second->GetStat().first.c_str(), node_it->second->GetStat().second.c_str());
+    IMAGINE_ZOOKEEPER_LOG("Cluster Node Stat is %s:%s", node_it->second->GetStat().first.c_str(), node_it->second->GetStat().second.c_str());
 
     // 若要删除节点为当前集群主节点,则应更新主节点
     bool is_lock_cluster = false; // 标识是否由于主节点更新而上锁
@@ -236,7 +228,7 @@ bool ZooKeeperServer::DeleteZnode(const std::string &cluster_name, const std::pa
             update_node->SetWatcherStat(watcher_stat);
             update_node->Notify();
             delete update_node;
-            LOG_INFO("delete cluster!");
+            IMAGINE_ZOOKEEPER_LOG("delete cluster!");
 
             return true;
         } else {
@@ -363,63 +355,68 @@ ZooKeeperServer::ZnodeHP::ZnodeHP(const std::string &cluster_name, const std::pa
     // this->next=this;
 }
 
-ZooKeeperServer::Znode *ZooKeeperServer::HighAvailabilityUpdate(Znode *cluster_node)
+ZooKeeperServer::Znode *ZooKeeperServer::HighAvailabilityUpdate(Znode *cluster_node) const
 {
     return nullptr;
 }
 
-ZooKeeperServer::Znode *ZooKeeperServer::LoadBalanceUpdate(Znode *cluster_node)
+ZooKeeperServer::Znode *ZooKeeperServer::LoadBalanceUpdate(Znode *cluster_node) const
 {
     return cluster_node->Update();
 }
 
-ZooKeeperServer::Znode *ZooKeeperServer::HighPerformanceUpdate(Znode *cluster_node)
+ZooKeeperServer::Znode *ZooKeeperServer::HighPerformanceUpdate(Znode *cluster_node) const
 {
     return nullptr;
 }
 
-ZooKeeperServer::ZnodeHA::~ZnodeHA() {}
+ZooKeeperServer::ZnodeHA::~ZnodeHA()
+{
+}
 
-ZooKeeperServer::ZnodeLB::~ZnodeLB() {}
+ZooKeeperServer::ZnodeLB::~ZnodeLB()
+{
+}
 
-ZooKeeperServer::ZnodeHP::~ZnodeHP() {}
+ZooKeeperServer::ZnodeHP::~ZnodeHP()
+{
+}
 
-std::string ZooKeeperServer::Znode::GetCluster()
+std::string ZooKeeperServer::Znode::GetCluster() const
 {
     return cluster_name_;
 }
 
-std::pair<std::string, std::string> ZooKeeperServer::Znode::GetStat()
+std::pair<std::string, std::string> ZooKeeperServer::Znode::GetStat() const
 {
     return stat_;
 }
 
-std::string ZooKeeperServer::Znode::GetData()
+std::string ZooKeeperServer::Znode::GetData() const
 {
     return data_;
 }
 
-ZooKeeperServer::Znode *ZooKeeperServer::ZnodeLB::GetPre()
+ZooKeeperServer::Znode *ZooKeeperServer::ZnodeLB::GetPre() const
 {
     return this->pre_;
 }
 
-ZooKeeperServer::Znode *ZooKeeperServer::ZnodeLB::GetNext()
+ZooKeeperServer::Znode *ZooKeeperServer::ZnodeLB::GetNext() const
 {
     return this->next_;
 }
 
-bool ZooKeeperServer::ZnodeHA::Insert(Znode *next) { return false; }
+ZooKeeperServer::Znode* ZooKeeperServer::ZnodeHA::Insert(Znode *next) { return this; }
 
-bool ZooKeeperServer::ZnodeLB::Insert(Znode *next)
+ZooKeeperServer::Znode* ZooKeeperServer::ZnodeLB::Insert(Znode *next)
 {
     // 在该节点之后插入一个新节点next_到双向循环链表
 
     ZnodeLB *next_lb = dynamic_cast<ZnodeLB *>(next);
     if (next_lb == nullptr) {
-        LOG_INFO("Insert exception!");
+        IMAGINE_ZOOKEEPER_LOG("Insert exception!");
         throw std::exception();
-        return false;
     }
 
     next_lb->next_ = this->next_;
@@ -427,14 +424,14 @@ bool ZooKeeperServer::ZnodeLB::Insert(Znode *next)
     next_lb->next_->pre_ = next_lb;
     next_lb->pre_ = this;
 
-    return true;
+    return this;
 }
 
-bool ZooKeeperServer::ZnodeHP::Insert(Znode *next) { return false; }
+ZooKeeperServer::Znode* ZooKeeperServer::ZnodeHP::Insert(Znode *next) { return this; }
 
-bool ZooKeeperServer::ZnodeHA::Delete(Znode *aim_node) { return false; }
+ZooKeeperServer::Znode* ZooKeeperServer::ZnodeHA::Delete(Znode *aim_node) { return this; }
 
-bool ZooKeeperServer::ZnodeLB::Delete(Znode *aim_node)
+ZooKeeperServer::Znode* ZooKeeperServer::ZnodeLB::Delete(Znode *aim_node)
 {
     // 将该节点从双向循环链表中摘除
 
@@ -443,7 +440,7 @@ bool ZooKeeperServer::ZnodeLB::Delete(Znode *aim_node)
         node = node->next_;
         if (node == this) {
             // 未找到节点
-            LOG_INFO("Delete exception!");
+            IMAGINE_ZOOKEEPER_LOG("Delete exception!");
             throw std::exception();
         }
     }
@@ -456,10 +453,10 @@ bool ZooKeeperServer::ZnodeLB::Delete(Znode *aim_node)
         node->next_->pre_ = node->pre_;
     }
 
-    return true;
+    return this;
 }
 
-bool ZooKeeperServer::ZnodeHP::Delete(Znode *aim_node) { return false; }
+ZooKeeperServer::Znode* ZooKeeperServer::ZnodeHP::Delete(Znode *aim_node) { return this; }
 
 ZooKeeperServer::Znode *ZooKeeperServer::ZnodeHA::Find(const std::pair<std::string, std::string> &stat) { return nullptr; }
 
@@ -470,7 +467,7 @@ ZooKeeperServer::Znode *ZooKeeperServer::ZnodeLB::Find(const std::pair<std::stri
         aim_node = aim_node->next_;
         if (aim_node == this) {
             // 找不到
-            LOG_INFO("Find exception!");
+            IMAGINE_ZOOKEEPER_LOG("Find exception!");
             throw std::exception();
         }
     }
@@ -489,30 +486,32 @@ ZooKeeperServer::Znode *ZooKeeperServer::ZnodeLB::Update()
 
 ZooKeeperServer::Znode *ZooKeeperServer::ZnodeHP::Update() { return nullptr; }
 
-void ZooKeeperServer::Znode::Notify()
+const ZooKeeperServer::Znode* ZooKeeperServer::Znode::Notify() const
 {
-    for (std::list<std::shared_ptr<Watcher>>::iterator it = watcher_list_.begin(); it != watcher_list_.end(); it++) {
+    for (std::list<std::shared_ptr<Watcher>>::const_iterator it = watcher_list_.begin(); it != watcher_list_.end(); it++) {
         (*it)->Update(this->watcher_stat_);
     }
+
+    return this;
 }
 
-bool ZooKeeperServer::Znode::AddWatcher(std::shared_ptr<Watcher> new_watcher)
+ZooKeeperServer::Znode* ZooKeeperServer::Znode::AddWatcher(std::shared_ptr<Watcher> new_watcher)
 {
     if (!new_watcher) {
-        LOG_INFO("AddWatcher exception!");
+        IMAGINE_ZOOKEEPER_LOG("AddWatcher exception!");
         throw std::exception();
-        return false;
     }
 
     watcher_list_.push_back(new_watcher);
 
-    return true;
+    return this;
 }
 
-bool ZooKeeperServer::Znode::SetWatcherStat(const std::string &watcher_stat)
+ZooKeeperServer::Znode* ZooKeeperServer::Znode::SetWatcherStat(const std::string &watcher_stat)
 {
     this->watcher_stat_ = watcher_stat;
-    return true;
+
+    return this;
 }
 
 std::pair<std::string, std::string> ZooKeeperServer::GetClusterZnodeStat(const std::string &cluster_name, bool update, std::shared_ptr<Watcher> new_watcher)
@@ -522,7 +521,7 @@ std::pair<std::string, std::string> ZooKeeperServer::GetClusterZnodeStat(const s
     std::unordered_map<std::string, Znode *>::iterator node_it = node_map_.find(cluster_name);
     std::unordered_map<std::string, pthread_mutex_t *>::iterator lock_it = lock_map_.find(cluster_name);
     if (type_it == type_map_.end() || node_it == node_map_.end() || lock_it == lock_map_.end()) {
-        LOG_INFO("GetClusterZnodeStat exception!");
+        IMAGINE_ZOOKEEPER_LOG("GetClusterZnodeStat exception!");
         pthread_mutex_unlock(&map_lock_);
         return std::make_pair("", "");
         throw std::exception(); // 异常
@@ -547,7 +546,7 @@ std::string ZooKeeperServer::GetClusterZnodeData(const std::string &cluster_name
     std::unordered_map<std::string, Znode *>::iterator node_it = node_map_.find(cluster_name);
     std::unordered_map<std::string, pthread_mutex_t *>::iterator lock_it = lock_map_.find(cluster_name);
     if (type_it == type_map_.end() || node_it == node_map_.end() || lock_it == lock_map_.end()) {
-        LOG_INFO("GetClusterZnodeData exception!");
+        IMAGINE_ZOOKEEPER_LOG("GetClusterZnodeData exception!");
         throw std::exception(); // 异常
         // pthread_mutex_unlock(&map_lock);
         return "";
@@ -576,7 +575,7 @@ std::string ZooKeeperServer::GetClusterZnodeData(const std::string &cluster_name
     // }
 }
 
-ZooKeeperServer::Znode *ZooKeeperServer::UpdateClusterZnode(Znode *cluster_node, ClusterType cluster_type)
+ZooKeeperServer::Znode *ZooKeeperServer::UpdateClusterZnode(Znode *cluster_node, ClusterType cluster_type) const
 {
     switch (cluster_type)
     {

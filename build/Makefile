@@ -604,6 +604,33 @@ imagine_muduo/fast:
 	$(MAKE) -f thirdparty/Imagine_System/worker/Imagine_Muduo/CMakeFiles/imagine_muduo.dir/build.make thirdparty/Imagine_System/worker/Imagine_Muduo/CMakeFiles/imagine_muduo.dir/build
 .PHONY : imagine_muduo/fast
 
+src/Watcher.o: src/Watcher.cpp.o
+
+.PHONY : src/Watcher.o
+
+# target to build an object file
+src/Watcher.cpp.o:
+	$(MAKE) -f CMakeFiles/imagine_zookeeper.dir/build.make CMakeFiles/imagine_zookeeper.dir/src/Watcher.cpp.o
+.PHONY : src/Watcher.cpp.o
+
+src/Watcher.i: src/Watcher.cpp.i
+
+.PHONY : src/Watcher.i
+
+# target to preprocess a source file
+src/Watcher.cpp.i:
+	$(MAKE) -f CMakeFiles/imagine_zookeeper.dir/build.make CMakeFiles/imagine_zookeeper.dir/src/Watcher.cpp.i
+.PHONY : src/Watcher.cpp.i
+
+src/Watcher.s: src/Watcher.cpp.s
+
+.PHONY : src/Watcher.s
+
+# target to generate assembly for a file
+src/Watcher.cpp.s:
+	$(MAKE) -f CMakeFiles/imagine_zookeeper.dir/build.make CMakeFiles/imagine_zookeeper.dir/src/Watcher.cpp.s
+.PHONY : src/Watcher.cpp.s
+
 src/ZooKeeperServer.o: src/ZooKeeperServer.cpp.o
 
 .PHONY : src/ZooKeeperServer.o
@@ -704,6 +731,9 @@ help:
 	@echo "... imagine_time"
 	@echo "... imagine_log"
 	@echo "... imagine_muduo"
+	@echo "... src/Watcher.o"
+	@echo "... src/Watcher.i"
+	@echo "... src/Watcher.s"
 	@echo "... src/ZooKeeperServer.o"
 	@echo "... src/ZooKeeperServer.i"
 	@echo "... src/ZooKeeperServer.s"

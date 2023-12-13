@@ -9,9 +9,11 @@ namespace Imagine_ZooKeeper
 class Watcher
 {
  public:
-    virtual void Update(const std::string &send_content) = 0;
+    Watcher();
 
-    virtual ~Watcher(){};
+    virtual ~Watcher();
+
+    virtual void Update(const std::string &send_content) const = 0;
 };
 
 } // namespace Imagine_ZooKeeper
