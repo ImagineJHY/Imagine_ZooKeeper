@@ -1,11 +1,10 @@
 #ifndef IMAGINE_ZOOKEEPER_ZOOKEEPERSERVER_H
 #define IMAGINE_ZOOKEEPER_ZOOKEEPERSERVER_H
 
-#include "Imagine_Log/Logger.h"
-#include "Imagine_Muduo/EventLoop.h"
-#include "Imagine_Muduo/TcpServer.h"
 #include "Watcher.h"
 #include "common_typename.h"
+
+#include "Imagine_Muduo/Imagine_Muduo.h"
 
 #include <unordered_map>
 #include <list>
