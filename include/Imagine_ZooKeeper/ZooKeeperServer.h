@@ -1,7 +1,6 @@
 #ifndef IMAGINE_ZOOKEEPER_ZOOKEEPERSERVER_H
 #define IMAGINE_ZOOKEEPER_ZOOKEEPERSERVER_H
 
-#include "Watcher.h"
 #include "common_typename.h"
 
 #include "Imagine_Muduo/Imagine_Muduo.h"
@@ -11,6 +10,8 @@
 
 namespace Imagine_ZooKeeper
 {
+
+class Watcher;
 
 class ZooKeeperServer : public Imagine_Muduo::TcpServer
 {

@@ -2,6 +2,7 @@
 
 #include "Imagine_ZooKeeper/log_macro.h"
 #include "Imagine_ZooKeeper/ZooKeeperUtil.h"
+#include "Imagine_ZooKeeper/Watcher.h"
 
 #include <fstream>
 
