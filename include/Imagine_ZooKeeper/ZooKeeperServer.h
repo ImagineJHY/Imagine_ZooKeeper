@@ -1,16 +1,17 @@
 #ifndef IMAGINE_ZOOKEEPER_ZOOKEEPERSERVER_H
 #define IMAGINE_ZOOKEEPER_ZOOKEEPERSERVER_H
 
-#include "Imagine_Log/Logger.h"
-#include "Imagine_Muduo/EventLoop.h"
-#include "Imagine_Muduo/TcpServer.h"
-#include "Watcher.h"
+#include "common_typename.h"
+
+#include "Imagine_Muduo/Imagine_Muduo.h"
 
 #include <unordered_map>
 #include <list>
 
 namespace Imagine_ZooKeeper
 {
+
+class Watcher;
 
 class ZooKeeperServer : public Imagine_Muduo::TcpServer
 {
@@ -29,7 +30,7 @@ class ZooKeeperServer : public Imagine_Muduo::TcpServer
         std::string cluster_name_;                          // 用于记录所属的cluster
         std::pair<std::string, std::string> stat_;          // 暂用于记录服务器名
         std::string data_;                                  // 暂用于记录服务器信息
-        std::list<std::shared_ptr<Watcher>> watcher_list_;
+        std::list<std::shared_ptr<Watcher>> watcher_list_;  // 用于记录注册了Watcher的列表
         std::string watcher_stat_;                          // 告诉watcher自己的状态
 
      public:
@@ -37,27 +38,27 @@ class ZooKeeperServer : public Imagine_Muduo::TcpServer
 
         virtual ~Znode();
 
-        std::string GetCluster();
+        std::string GetCluster() const;
 
-        std::pair<std::string, std::string> GetStat();
+        std::pair<std::string, std::string> GetStat() const;
 
-        std::string GetData();
+        std::string GetData() const;
 
-        bool SetWatcherStat(const std::string &watcher_stat);
+        Znode* SetWatcherStat(const std::string &watcher_stat);
 
-        virtual bool Insert(Znode *next) = 0;
+        virtual Znode* Insert(Znode *next) = 0;
 
         // 将节点从集群结构中移除(不是真的delete)
-        virtual bool Delete(Znode *aim_node) = 0;
+        virtual Znode* Delete(Znode *aim_node) = 0;
 
         virtual Znode *Find(const std::pair<std::string, std::string> &stat) = 0;
 
         // clusternode调用,返回集群更新后选举的master节点
         virtual Znode *Update() = 0;
 
-        void Notify();
+        const Znode* Notify() const;
 
-        bool AddWatcher(std::shared_ptr<Watcher> new_watcher);
+        Znode* AddWatcher(std::shared_ptr<Watcher> new_watcher);
     };
 
     class ZnodeHA : public Znode
@@ -67,17 +68,13 @@ class ZooKeeperServer : public Imagine_Muduo::TcpServer
 
         ~ZnodeHA();
 
-        Znode *GetPre();
+        Znode *GetPre() const;
 
-        Znode *GetNext();
+        Znode *GetNext() const;
 
-        // bool SetPre(Znode* pre);
+        Znode* Insert(Znode *next);
 
-        // bool SetNext(Znode* next);
-
-        bool Insert(Znode *next);
-
-        bool Delete(Znode *aim_node);
+        Znode* Delete(Znode *aim_node);
 
         Znode *Find(const std::pair<std::string, std::string> &stat);
 
@@ -95,17 +92,13 @@ class ZooKeeperServer : public Imagine_Muduo::TcpServer
 
         ~ZnodeLB();
 
-        Znode *GetPre();
+        Znode *GetPre() const;
 
-        Znode *GetNext();
+        Znode *GetNext() const;
 
-        // bool SetPre(Znode* pre);
+        Znode* Insert(Znode *next);
 
-        // bool SetNext(Znode* next);
-
-        bool Insert(Znode *next);
-
-        bool Delete(Znode *aim_node);
+        Znode* Delete(Znode *aim_node);
 
         Znode *Find(const std::pair<std::string, std::string> &stat);
 
@@ -123,17 +116,13 @@ class ZooKeeperServer : public Imagine_Muduo::TcpServer
 
         ~ZnodeHP();
 
-        Znode *GetPre();
+        Znode *GetPre() const;
 
-        Znode *GetNext();
+        Znode *GetNext() const;
 
-        // bool SetPre(Znode* pre);
+        Znode* Insert(Znode *next);
 
-        // bool SetNext(Znode* next);
-
-        bool Insert(Znode *next);
-
-        bool Delete(Znode *aim_node);
+        Znode* Delete(Znode *aim_node);
 
         Znode *Find(const std::pair<std::string, std::string> &stat);
 
@@ -147,19 +136,21 @@ class ZooKeeperServer : public Imagine_Muduo::TcpServer
  public:
     ZooKeeperServer();
 
-    ZooKeeperServer(std::string profile_name);
+    // 使用默认的TcpConnection, 无业务逻辑, 弃用
+    ZooKeeperServer(const std::string& profile_name);
+    
+    // 使用默认的TcpConnection, 无业务逻辑, 弃用
+    ZooKeeperServer(const YAML::Node& config);
 
-    ZooKeeperServer(YAML::Node config);
+    ZooKeeperServer(const std::string& profile_name, Imagine_Muduo::Connection* msg_conn);
 
-    ZooKeeperServer(std::string profile_name, Imagine_Muduo::Connection* msg_conn);
-
-    ZooKeeperServer(YAML::Node config, Imagine_Muduo::Connection* msg_conn);
+    ZooKeeperServer(const YAML::Node& config, Imagine_Muduo::Connection* msg_conn);
 
     virtual ~ZooKeeperServer();
 
-    void Init(std::string profile_name);
+    void Init(const std::string& profile_name);
 
-    void Init(YAML::Node config);
+    void Init(const YAML::Node& config);
 
     void LoadBalance(); // 暂未启用
 
@@ -188,19 +179,13 @@ class ZooKeeperServer : public Imagine_Muduo::TcpServer
     Znode *LoadBalanceDelete(Znode *cluster_node, const std::pair<std::string, std::string> &stat);
     Znode *HighPerformanceDelete(Znode *cluster_node, const std::pair<std::string, std::string> &stat);
 
-    // bool HighAvailabilityFind(std::unordered_map<std::string,Znode*>::iterator it);
-
-    // bool LoadBalanceFind(std::unordered_map<std::string,Znode*>::iterator it);
-
-    // bool HighPerformanceFind(std::unordered_map<std::string,Znode*>::iterator it);
-
     // 更新集群的master节点,并返回新的master节点
-    Znode *HighAvailabilityUpdate(Znode *cluster_node);
-    Znode *LoadBalanceUpdate(Znode *cluster_node);
-    Znode *HighPerformanceUpdate(Znode *cluster_node);
+    Znode *HighAvailabilityUpdate(Znode *cluster_node) const;
+    Znode *LoadBalanceUpdate(Znode *cluster_node) const;
+    Znode *HighPerformanceUpdate(Znode *cluster_node) const;
 
     // 创造Znode节点
-    Znode *CreateZnode(const std::string &cluster_name, ClusterType cluster_type, const std::pair<std::string, std::string> &stat, const std::string &data = nullptr);
+    Znode *CreateZnode(const std::string &cluster_name, ClusterType cluster_type, const std::pair<std::string, std::string> &stat, const std::string &data = nullptr) const;
 
     // 在map中增加集群
     bool CreateClusterInMap(const std::string &cluster_name, Znode *root_node, const ClusterType cluster_type);
@@ -208,35 +193,20 @@ class ZooKeeperServer : public Imagine_Muduo::TcpServer
     // 删除map中的相应集群
     bool DeleteClusterInMap(const std::string &cluster_name);
 
-    // 不加锁的查找集群的主节点,因此为private方法,不允许将Znode暴露给外界,避免线程同步问题出现
-    // Znode* FindClusterZnode(const std::string& cluster_name, bool update = false);
-
     // 更新集群master节点,返回更新结果
-    Znode *UpdateClusterZnode(Znode *cluster_node, ClusterType cluster_type);
+    Znode *UpdateClusterZnode(Znode *cluster_node, ClusterType cluster_type) const;
 
  protected:
-    std::string ip_;
-    std::string port_;
-    size_t max_channel_num_;
-    std::string log_name_;
-    std::string log_path_;
-    size_t max_log_file_size_;
-    bool async_log_;
+    // 配置文件字段
     bool singleton_log_mode_;
-    std::string log_title_;
-    bool log_with_timestamp_;
-    Imagine_Tool::Logger* logger_;
-
- protected:
-    int max_cluster_num_;                                           // 能够接收的最大集群数，暂不限定单个集群内的节点数目
+    Logger* logger_;
 
  private:
-    pthread_mutex_t map_lock_;
-    std::unordered_map<std::string, ClusterType> type_map_;
-    std::unordered_map<std::string, Znode *> node_map_;
-    std::unordered_map<std::string, pthread_mutex_t *> lock_map_;
-
-    std::unordered_map<std::string, int> unique_map_;               // 用于保证全局唯一,避免重复注册
+    pthread_mutex_t map_lock_;                                       // 所有map的锁
+    std::unordered_map<std::string, ClusterType> type_map_;          // 记录服务对应的集群类型
+    std::unordered_map<std::string, Znode *> node_map_;              // 记录服务对应的Znode主节点
+    std::unordered_map<std::string, pthread_mutex_t *> lock_map_;    // 记录服务对应的集群锁
+    std::unordered_map<std::string, int> unique_map_;                // 用于保证全局唯一,避免重复注册
 };
 
 } // namespace Imagine_ZooKeeper
