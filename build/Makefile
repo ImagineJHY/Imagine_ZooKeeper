@@ -592,6 +592,19 @@ imagine_log/fast:
 .PHONY : imagine_log/fast
 
 #=============================================================================
+# Target rules for targets named imagine_statemachine
+
+# Build rule for target.
+imagine_statemachine: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 imagine_statemachine
+.PHONY : imagine_statemachine
+
+# fast build rule for target.
+imagine_statemachine/fast:
+	$(MAKE) -f thirdparty/Imagine_Tool/Imagine_StateMachine/CMakeFiles/imagine_statemachine.dir/build.make thirdparty/Imagine_Tool/Imagine_StateMachine/CMakeFiles/imagine_statemachine.dir/build
+.PHONY : imagine_statemachine/fast
+
+#=============================================================================
 # Target rules for targets named imagine_muduo
 
 # Build rule for target.
@@ -730,6 +743,7 @@ help:
 	@echo "... yaml-cpp-parse"
 	@echo "... imagine_time"
 	@echo "... imagine_log"
+	@echo "... imagine_statemachine"
 	@echo "... imagine_muduo"
 	@echo "... src/Watcher.o"
 	@echo "... src/Watcher.i"
