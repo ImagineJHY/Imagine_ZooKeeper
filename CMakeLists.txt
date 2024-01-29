@@ -13,8 +13,8 @@ if(NOT DEFINED IMAGINE_TARGET_LIB)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
 
     string(ASCII 27 Esc)
-    set(R "${Esc}[0;31m")
-    set(G "${Esc}[1;34m")
+    set(R "${Esc}[1;31m")
+    set(G "${Esc}[0;34m")
     set(E "${Esc}[m")
 
     set(IS_MAKE_PROJECT false)
