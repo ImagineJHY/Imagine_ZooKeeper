@@ -22,7 +22,12 @@ else
 endif
 	cd ${system_file_name} && make prepare
 	cd ${tool_file_name} && make prepare
+
 build:
-	cd build && cmake .. && make imagine_zookeeper
+	cd build && cmake -DBUILD_ZOOKEEPER=OFF .. && make imagine_zookeeper
+
+zookeeper:
+	cd build && cmake -DBUILD_ZOOKEEPER=ON .. && make imagine_zookeeper
+
 clean:
 	cd build && make clean
